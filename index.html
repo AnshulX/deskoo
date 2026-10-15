@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Deskoo</title>
+<style>
+:root{--bg:#fff;--fg:#000;--mute:#666;--line:#000}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--fg:#fff;--mute:#999;--line:#fff;color-scheme:dark}}
+*{box-sizing:border-box;border-radius:0}
+body{background:var(--bg);color:var(--fg);font:16px -apple-system,BlinkMacSystemFont,system-ui,sans-serif;margin:0 auto;max-width:480px;padding:20px 16px 48px}
+h1{font-size:24px;margin:0;letter-spacing:-.01em}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.st{font-size:13px;color:var(--mute)}
+h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin:30px 0 10px}
+textarea,input,select{width:100%;font:inherit;padding:11px;border:2px solid var(--line);background:var(--bg);color:var(--fg);outline:none}
+textarea{height:84px;resize:none}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--fg);outline-offset:2px}
+button{font:inherit;font-size:15px;padding:12px 8px;border:2px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:active,button.on{background:var(--fg);color:var(--bg)}
+button.main{background:var(--fg);color:var(--bg);font-weight:600;width:100%}
+.row{display:flex;justify-content:space-between;font-size:12px;margin:6px 0 10px;color:var(--mute);min-height:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.rem{display:flex;align-items:center;gap:10px;border-top:2px solid var(--line);padding:10px 0}
+.rem:last-child{border-bottom:2px solid var(--line)}
+.rem .tm{font-variant-numeric:tabular-nums;font-weight:600;min-width:48px}
+.rem .tx{flex:1;min-width:0;overflow-wrap:anywhere}
+.rem .rp{font-size:12px;color:var(--mute)}
+.rem button{padding:6px 10px;font-size:13px}
+.empty{color:var(--mute);font-size:14px;padding:6px 0 10px}
+label{display:block;font-size:12px;color:var(--mute);margin:0 0 4px}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:448px;margin:0 auto;background:var(--fg);color:var(--bg);padding:12px 14px;font-size:14px}
+</style></head><body>
+<div class="top"><h1 id="nm">Deskoo</h1><span class="st" id="st">Connecting...</span></div>
+
+<section id="keybox" hidden>
+<h2>Connect</h2>
+<label for="key">Deskoo key</label>
+<input id="key" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="deskoo-...">
+<div class="row"></div>
+<button class="main" id="keysave">Connect</button>
+</section>
+
+<section id="app">
+<h2>Message</h2>
+<textarea id="t" maxlength="200" placeholder="Type a message for the screen"></textarea>
+<div class="row"><span>Shows for 10 seconds</span><span><span id="c">0</span>/200</span></div>
+<button class="main" id="go">Send to screen</button>
+
+<h2>Quick status</h2>
+<div class="grid" id="presets"></div>
+
+<h2>Face</h2>
+<div class="grid g3" id="moods"></div>
+
+<h2>Reminders</h2>
+<div id="rems"></div>
+<div style="height:12px"></div>
+<label for="rt">Remind me to</label>
+<input id="rt" maxlength="60" placeholder="Have lunch">
+<div style="height:8px"></div>
+<div class="two">
+<div><label for="rh">At</label><input id="rh" type="time" value="13:00"></div>
+<div><label for="rr">Repeat</label><select id="rr"><option value="once">Once</option><option value="daily" selected>Every day</option><option value="weekdays">Weekdays</option><option value="weekends">Weekends</option></select></div>
+</div>
+<button class="main" id="radd">Add reminder</button>
+
+<h2>Names</h2>
+<div class="two">
+<div><label for="bn">Buddy's name</label><input id="bn" maxlength="12"></div>
+<div><label for="un">Your name</label><input id="un" maxlength="12"></div>
+</div>
+<button class="main" id="nsave">Save names</button>
+</section>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+var LOCAL=false;
+var NTFY="https://ntfy.sh/";
+var key="";
+var presets=["In a meeting","Back in 5","Do not disturb","Come in!","On a call","Out for lunch"];
+var moods=[["normal","Normal"],["happy","Happy"],["sleepy","Sleepy"],["angry","Angry"],["love","Love"],["wink","Wink"],["star","Star"],["blush","Blush"],["teary","Teary"],["dizzy","Dizzy"],["cat","Cat"],["uwu","UwU"]];
+function el(i){return document.getElementById(i);}
+var tt;
+function toast(s){var t=el("toast");t.textContent=s;t.hidden=false;clearTimeout(tt);tt=setTimeout(function(){t.hidden=true;},3000);}
+function send(body){
+  var url=LOCAL?"/cmd":NTFY+key;
+  return fetch(url,{method:"POST",body:body}).then(function(r){
+    if(!r.ok) throw 0;
+    return LOCAL?r.text():"ok";
+  });
+}
+function cmd(body,done){
+  send(body).then(function(reply){toast(LOCAL&&reply&&reply!=="ok"?reply:(done||"Sent"));setTimeout(load,LOCAL?400:3500);})
+  .catch(function(){toast("Could not reach Deskoo");});
+}
+function ago(sec){
+  if(sec<90) return "just now"; var m=Math.round(sec/60); if(m<60) return m+" min ago";
+  var h=Math.round(m/60); return h<48?h+" h ago":Math.round(h/24)+" days ago";
+}
+function render(s){
+  if(!s) return;
+  el("nm").textContent=s.name||"Deskoo";
+  document.title=s.name||"Deskoo";
+  if(document.activeElement!==el("bn")) el("bn").value=s.name||"";
+  if(document.activeElement!==el("un")) el("un").value=s.user||"";
+  var b=el("moods").children;for(var i=0;i<b.length;i++) b[i].className=(b[i].dataset.m===s.mood)?"on":"";
+  var box=el("rems");box.textContent="";
+  var r=s.rem||[];
+  if(!r.length){var e=document.createElement("div");e.className="empty";e.textContent="No reminders yet.";box.appendChild(e);}
+  r.forEach(function(x,i){
+    var d=document.createElement("div");d.className="rem";
+    var a=document.createElement("span");a.className="tm";a.textContent=x.time;
+    var t=document.createElement("span");t.className="tx";t.textContent=x.text+" ";
+    var p=document.createElement("span");p.className="rp";p.textContent=x.rep;t.appendChild(p);
+    var del=document.createElement("button");del.textContent="Delete";
+    del.onclick=function(){cmd("/delete "+(i+1),"Deleted");};
+    d.appendChild(a);d.appendChild(t);d.appendChild(del);box.appendChild(d);
+  });
+  if(LOCAL){el("st").textContent="On this WiFi";}
+  else if(s.t){var age=Date.now()/1000-s.t;el("st").textContent=(age<1260?"Online, ":"Offline, seen ")+ago(age);}
+}
+function load(){
+  if(LOCAL){fetch("/state").then(function(r){return r.json();}).then(render).catch(function(){el("st").textContent="Not reachable";});return;}
+  fetch(NTFY+key+"-state/json?poll=1&since=all").then(function(r){return r.text();}).then(function(txt){
+    var lines=txt.trim().split("\n"),s=null;
+    for(var i=lines.length-1;i>=0&&!s;i--){try{var m=JSON.parse(lines[i]);if(m.event==="message")s=JSON.parse(m.message);}catch(e){}}
+    if(s) render(s); else el("st").textContent="Waiting for Deskoo";
+  }).catch(function(){el("st").textContent="No internet";});
+}
+function start(){
+  el("keybox").hidden=true;el("app").hidden=false;
+  load();
+  if(!LOCAL){send("/ping").catch(function(){});setTimeout(load,4000);}
+  setInterval(load,60000);
+}
+presets.forEach(function(p){var b=document.createElement("button");b.textContent=p;b.onclick=function(){cmd(p,"On screen");};el("presets").appendChild(b);});
+moods.forEach(function(m){var b=document.createElement("button");b.textContent=m[1];b.dataset.m=m[0];b.onclick=function(){cmd("/mood "+m[0],m[1]+" face set");};el("moods").appendChild(b);});
+el("t").addEventListener("input",function(){el("c").textContent=el("t").value.length;});
+el("t").addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();el("go").click();}});
+el("go").onclick=function(){var x=el("t").value.trim();if(!x)return;x=x.replace(/^\/+/,"");if(!x)return;cmd(x,"On screen");el("t").value="";el("c").textContent="0";};
+el("radd").onclick=function(){
+  var x=el("rt").value.trim(),h=el("rh").value;
+  if(!x){toast("Type what to remind you about");return;}
+  if(!h){toast("Pick a time");return;}
+  cmd("/remind "+h+" "+el("rr").value+" "+x,"Reminder added");el("rt").value="";
+};
+el("nsave").onclick=function(){
+  var b=el("bn").value.trim(),u=el("un").value.trim();
+  if(b) send("/name "+b).catch(function(){});
+  setTimeout(function(){if(u) cmd("/me "+u,"Names saved"); else if(b){toast("Name saved");setTimeout(load,3500);}},LOCAL?100:1200);
+};
+el("keysave").onclick=function(){
+  var k=el("key").value.trim();
+  if(!/^deskoo-[a-z0-9]{10,40}$/.test(k)){toast("That key doesn't look right");return;}
+  key=k;try{localStorage.setItem("deskooKey",k);}catch(e){}
+  start();
+};
+if(LOCAL){start();}
+else{
+  var h=location.hash.replace("#","");
+  if(/^deskoo-[a-z0-9]{10,40}$/.test(h)){key=h;try{localStorage.setItem("deskooKey",h);history.replaceState(null,"",location.pathname);}catch(e){}}
+  if(!key){try{key=localStorage.getItem("deskooKey")||"";}catch(e){}}
+  if(key) start(); else {el("app").hidden=true;el("keybox").hidden=false;el("st").textContent="";}
+}
+</script>
+</body></html>
