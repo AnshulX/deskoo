@@ -4,35 +4,74 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Deskoo</title>
 <style>
-:root{--bg:#fff;--fg:#000;--mute:#666;--line:#000}
-@media (prefers-color-scheme:dark){:root{--bg:#000;--fg:#fff;--mute:#999;--line:#fff;color-scheme:dark}}
+/* Peeking Deskoo: white page on a faint pastel grid, blocky eyes peek in from the edges.
+   Always light, sharp corners everywhere. */
+:root{--bg:#fff;--fg:#000;--mute:#5a5560;--line:#000;--mint:#c9f0dc;--peach:#ffd8c6;--lilac:#ddd4fb;--grid:rgba(150,128,230,.14);color-scheme:light}
 *{box-sizing:border-box;border-radius:0}
-body{background:var(--bg);color:var(--fg);font:16px -apple-system,BlinkMacSystemFont,system-ui,sans-serif;margin:0 auto;max-width:480px;padding:20px 16px 48px}
-h1{font-size:24px;margin:0;letter-spacing:-.01em}
-.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
-.st{font-size:13px;color:var(--mute)}
+html{min-height:100%;background-color:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+body{color:var(--fg);font:16px -apple-system,BlinkMacSystemFont,system-ui,sans-serif;margin:0 auto;max-width:480px;padding:20px 16px 48px;background:transparent}
+body>*{position:relative;z-index:1}
+h1{font-size:24px;margin:0;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.logo{display:inline-flex;gap:4px;align-items:center;background:var(--fg);padding:5px 6px}
+.logo i{display:block;width:7px;height:10px;background:var(--mint);animation:blink 4.2s infinite}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.st:empty{display:none}
+.st{font-size:13px;color:var(--mute);background:var(--bg);border:2px solid var(--line);padding:3px 8px}
+.peek{position:fixed;z-index:0;display:flex;gap:9px;align-items:center;border:2px solid var(--line);pointer-events:none}
+.peek i{display:block;width:16px;height:22px;background:var(--fg);transform-origin:center}
+.peek .eyes{display:flex;gap:9px;animation:look 9s ease-in-out infinite}
+.p1{width:88px;height:60px;top:96px;right:-40px;background:var(--lilac);padding-left:12px}
+.p1 i{animation:blink 5.3s infinite}
+.p2{width:88px;height:60px;bottom:110px;left:-40px;background:var(--mint);justify-content:flex-end;padding-right:12px}
+.p2 i{animation:blink 6.7s .8s infinite}
+.p2 .eyes{animation-duration:11s;animation-direction:reverse}
+.p1,.p2{display:none}
+@media (min-width:700px){.p1,.p2{display:flex}}
+.p3{width:70px;height:52px;top:-26px;left:calc(50% - 35px);background:var(--peach);justify-content:center;align-items:flex-end;padding-bottom:6px}
+h2{position:relative}
+.grid,.rems-wrap,textarea{position:relative;z-index:2}
+.perch{position:absolute;right:14px;top:-6px;width:62px;height:44px;border:2px solid var(--line);display:flex;justify-content:center;align-items:flex-start;padding-top:7px;z-index:1;pointer-events:none}
+.perch .eyes{display:flex;gap:8px;animation:look 10s ease-in-out infinite}
+.perch i{display:block;width:12px;height:16px;background:var(--fg);animation:blink 5.8s infinite}
+.perch.mint{background:var(--mint);right:auto;left:calc(50% - 31px)}
+.perch.mint i{animation-delay:1.3s}
+.perch.lilac{background:var(--lilac)}
+.perch.peach{background:var(--peach);right:30px}
+.perch.peach i{animation-delay:2.4s}
+.perch.peach .eyes{animation-direction:reverse}
+.p3 i{width:13px;height:16px;animation:blink 4.6s 1.6s infinite}
+.p3 .eyes{gap:8px}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes look{0%,30%{transform:translateX(0)}38%,55%{transform:translateX(5px)}63%,82%{transform:translateX(-4px)}90%,100%{transform:translateX(0)}}
+@media (prefers-reduced-motion:reduce){.peek i,.peek .eyes,.logo i,.perch i,.perch .eyes{animation:none}}
 h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin:30px 0 10px}
 textarea,input,select{width:100%;font:inherit;padding:11px;border:2px solid var(--line);background:var(--bg);color:var(--fg);outline:none}
 textarea{height:84px;resize:none}
 input:focus,textarea:focus,select:focus{outline:2px solid var(--fg);outline-offset:2px}
 button{font:inherit;font-size:15px;padding:12px 8px;border:2px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer;-webkit-tap-highlight-color:transparent}
-button:active,button.on{background:var(--fg);color:var(--bg)}
-button.main{background:var(--fg);color:var(--bg);font-weight:600;width:100%}
-.row{display:flex;justify-content:space-between;font-size:12px;margin:6px 0 10px;color:var(--mute);min-height:16px}
+.grid button:nth-child(3n+1){background:var(--mint)}
+.grid button:nth-child(3n+2){background:var(--peach)}
+.grid button:nth-child(3n){background:var(--lilac)}
+button:active,button.on,.grid button.on,.grid button:active{background:var(--fg);color:var(--bg)}
+button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+button.main{background:var(--fg);color:var(--bg);font-weight:600;width:100%}.row{display:flex;justify-content:space-between;font-size:12px;margin:6px 0 10px;color:var(--mute);min-height:16px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .g3{grid-template-columns:1fr 1fr 1fr}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-.rem{display:flex;align-items:center;gap:10px;border-top:2px solid var(--line);padding:10px 0}
+.rem{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-bottom:0;background:var(--bg);padding:10px}
 .rem:last-child{border-bottom:2px solid var(--line)}
 .rem .tm{font-variant-numeric:tabular-nums;font-weight:600;min-width:48px}
 .rem .tx{flex:1;min-width:0;overflow-wrap:anywhere}
 .rem .rp{font-size:12px;color:var(--mute)}
-.rem button{padding:6px 10px;font-size:13px}
+.rem button{padding:6px 10px;font-size:13px;background:var(--peach)}
 .empty{color:var(--mute);font-size:14px;padding:6px 0 10px}
 label{display:block;font-size:12px;color:var(--mute);margin:0 0 4px}
 .toast{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:448px;margin:0 auto;background:var(--fg);color:var(--bg);padding:12px 14px;font-size:14px}
 </style></head><body>
-<div class="top"><h1 id="nm">Deskoo</h1><span class="st" id="st">Connecting...</span></div>
+<div class="peek p1" aria-hidden="true"><span class="eyes"><i></i><i></i></span></div>
+<div class="peek p2" aria-hidden="true"><span class="eyes"><i></i><i></i></span></div>
+<div class="peek p3" aria-hidden="true"><span class="eyes"><i></i><i></i></span></div>
+<div class="top"><h1><span class="logo" aria-hidden="true"><i></i><i></i></span><span id="nm">Deskoo</span></h1><span class="st" id="st">Connecting...</span></div>
 
 <section id="keybox" hidden>
 <h2>Connect</h2>
@@ -48,14 +87,14 @@ label{display:block;font-size:12px;color:var(--mute);margin:0 0 4px}
 <div class="row"><span>Shows for 10 seconds</span><span><span id="c">0</span>/200</span></div>
 <button class="main" id="go">Send to screen</button>
 
-<h2>Quick status</h2>
+<h2>Quick status<span class="perch lilac" aria-hidden="true"><span class="eyes"><i></i><i></i></span></span></h2>
 <div class="grid" id="presets"></div>
 
-<h2>Face</h2>
+<h2>Face<span class="perch mint" aria-hidden="true"><span class="eyes"><i></i><i></i></span></span></h2>
 <div class="grid g3" id="moods"></div>
 
-<h2>Reminders</h2>
-<div id="rems"></div>
+<h2>Reminders<span class="perch peach" aria-hidden="true"><span class="eyes"><i></i><i></i></span></span></h2>
+<div id="rems" class="rems-wrap"></div>
 <div style="height:12px"></div>
 <label for="rt">Remind me to</label>
 <input id="rt" maxlength="60" placeholder="Have lunch">
