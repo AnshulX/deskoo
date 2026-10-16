@@ -93,6 +93,12 @@ label{display:block;font-size:12px;color:var(--mute);margin:0 0 4px}
 <h2>Face<span class="perch mint" aria-hidden="true"><span class="eyes"><i></i><i></i></span></span></h2>
 <div class="grid g3" id="moods"></div>
 
+<h2>Sound</h2>
+<div class="grid g3" id="snd"></div>
+
+<h2>Focus and nudge</h2>
+<div class="grid" id="act"><button id="focus">Start focus</button><button id="nudge">Nudge</button></div>
+
 <h2>Reminders<span class="perch peach" aria-hidden="true"><span class="eyes"><i></i><i></i></span></span></h2>
 <div id="rems" class="rems-wrap"></div>
 <div style="height:12px"></div>
@@ -120,6 +126,8 @@ var NTFY="https://ntfy.sh/";
 var key="";
 var presets=["In a meeting","Back in 5","Do not disturb","Come in!","On a call","Out for lunch"];
 var moods=[["normal","Normal"],["happy","Happy"],["sleepy","Sleepy"],["angry","Angry"],["love","Love"],["wink","Wink"],["star","Star"],["blush","Blush"],["teary","Teary"],["dizzy","Dizzy"],["cat","Cat"],["uwu","UwU"],["suspicious","Suspicious"],["sad","Sad"],["excited","Excited"]];
+var sounds=[["normal","Normal"],["quiet","Quiet"],["silent","Silent"]];
+var fmode="";
 function el(i){return document.getElementById(i);}
 var tt;
 function toast(s){var t=el("toast");t.textContent=s;t.hidden=false;clearTimeout(tt);tt=setTimeout(function(){t.hidden=true;},3000);}
@@ -145,6 +153,11 @@ function render(s){
   if(document.activeElement!==el("bn")) el("bn").value=s.name||"";
   if(document.activeElement!==el("un")) el("un").value=s.user||"";
   var b=el("moods").children;for(var i=0;i<b.length;i++) b[i].className=(b[i].dataset.m===s.mood)?"on":"";
+  var sb=el("snd").children;for(var j=0;j<sb.length;j++) sb[j].className=(sb[j].dataset.s===(s.sound||"normal"))?"on":"";
+  fmode=s.fmode||"";
+  if(fmode){var left=(s.focus||0)-(LOCAL?0:Math.max(0,Date.now()/1000-(s.t||0)));left=Math.max(0,Math.round(left/60));
+    el("focus").textContent="Stop "+fmode+" ("+left+" min)";el("focus").className="on";}
+  else{el("focus").textContent="Start focus";el("focus").className="";}
   var box=el("rems");box.textContent="";
   var r=s.rem||[];
   if(!r.length){var e=document.createElement("div");e.className="empty";e.textContent="No reminders yet.";box.appendChild(e);}
@@ -176,6 +189,9 @@ function start(){
 }
 presets.forEach(function(p){var b=document.createElement("button");b.textContent=p;b.onclick=function(){cmd(p,"On screen");};el("presets").appendChild(b);});
 moods.forEach(function(m){var b=document.createElement("button");b.textContent=m[1];b.dataset.m=m[0];b.onclick=function(){cmd("/mood "+m[0],m[1]+" face set");};el("moods").appendChild(b);});
+sounds.forEach(function(m){var b=document.createElement("button");b.textContent=m[1];b.dataset.s=m[0];b.onclick=function(){cmd("/sound "+m[0],m[1]+" sound");};el("snd").appendChild(b);});
+el("focus").onclick=function(){cmd(fmode?"/focus stop":"/focus start",fmode?"Focus stopped":"Focus started");};
+el("nudge").onclick=function(){cmd("/buzz","Nudged");};
 el("t").addEventListener("input",function(){el("c").textContent=el("t").value.length;});
 el("t").addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();el("go").click();}});
 el("go").onclick=function(){var x=el("t").value.trim();if(!x)return;x=x.replace(/^\/+/,"");if(!x)return;cmd(x,"On screen");el("t").value="";el("c").textContent="0";};
