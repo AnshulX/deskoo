@@ -119,7 +119,7 @@ var LOCAL=false;
 var NTFY="https://ntfy.sh/";
 var key="";
 var presets=["In a meeting","Back in 5","Do not disturb","Come in!","On a call","Out for lunch"];
-var moods=[["normal","Normal"],["happy","Happy"],["sleepy","Sleepy"],["angry","Angry"],["love","Love"],["wink","Wink"],["star","Star"],["blush","Blush"],["teary","Teary"],["dizzy","Dizzy"],["cat","Cat"],["uwu","UwU"]];
+var moods=[["normal","Normal"],["happy","Happy"],["sleepy","Sleepy"],["angry","Angry"],["love","Love"],["wink","Wink"],["star","Star"],["blush","Blush"],["teary","Teary"],["dizzy","Dizzy"],["cat","Cat"],["uwu","UwU"],["suspicious","Suspicious"],["sad","Sad"],["excited","Excited"]];
 function el(i){return document.getElementById(i);}
 var tt;
 function toast(s){var t=el("toast");t.textContent=s;t.hidden=false;clearTimeout(tt);tt=setTimeout(function(){t.hidden=true;},3000);}
